@@ -78,3 +78,7 @@ sudo sed -i 's/$/ splash plymouth.ignore-serial-consoles logo.nologo vt.global_c
 working "Setting hostname"
 sudo sed -i 's/raspberrypi/chilipie-kiosk/g' /etc/hostname
 sudo sed -i 's/raspberrypi/chilipie-kiosk/g' /etc/hosts
+
+working "Cleaning up..."
+sudo apt-get autoclean
+sudo apt-get clean
