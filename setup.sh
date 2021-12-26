@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 BOOT_CMDLINE_TXT="/boot/cmdline.txt"
 BOOT_CONFIG_TXT="/boot/config.txt"
@@ -13,30 +13,43 @@ function question {
   echo -e "\n🛑  $1"
 }
 
-apt update && apt install -y npm
-working "Generating first-boot.html"
-if [ ! -d "node_modules" ]; then
-  npm install markdown-styles@3.1.10 html-inline@1.2.0
+echo "User: $(whoami)"
+
+if [ ! -f "./home/first-boot.html" ]; then
+  working "Generating first-boot.html"
+
+  if [ ! -d "node_modules" ]; then
+    sudo apt update && sudo apt install -y npm
+    npm install markdown-styles@3.1.10 html-inline@1.2.0
+  fi
+
+  if [ ! -d "md-input" ]; then
+    mkdir md-input
+    cp ./docs/first-boot.md md-input
+  fi
+
+  mkdir md-output
+
+  cp ./docs/first-boot.md md-output
+
+  ./node_modules/.bin/generate-md --layout github --input md-input/ --output md-output/
+  ./node_modules/.bin/html-inline -i md-output/first-boot.html >./home/first-boot.html
 fi
-rm -rf md-input md-output
-mkdir md-input md-output
-cp ../docs/first-boot.md md-input
-./node_modules/.bin/generate-md --layout github --input md-input/ --output md-output/
-./node_modules/.bin/html-inline -i md-output/first-boot.html >../home/first-boot.html
-rm -rf md-input md-output
+
+[ -d "node_modules" ] && rm -rf "node_modules"
+[ -d "md-input" ] && rm -rf "md-input"
 
 working "Backing up original boot files"
-cp -v "$BOOT_CMDLINE_TXT" "$BOOT_CMDLINE_TXT.backup"
-cp -v "$BOOT_CONFIG_TXT" "$BOOT_CONFIG_TXT.backup"
+sudo cp -v "$BOOT_CMDLINE_TXT" "$BOOT_CMDLINE_TXT.backup"
+sudo cp -v "$BOOT_CONFIG_TXT" "$BOOT_CONFIG_TXT.backup"
 
 working "Disabling automatic root filesystem expansion"
 echo "Updating: $BOOT_CMDLINE_TXT"
-cat "$BOOT_CMDLINE_TXT" | sed "s#init=/usr/lib/raspi-config/init_resize.sh##" >temp
-mv temp "$BOOT_CMDLINE_TXT"
+sudo sed -i "s#init=/usr/lib/raspi-config/init_resize.sh##" "$BOOT_CMDLINE_TXT"
 
 working "Enabling SSH for first boot"
 # https://www.raspberrypi.org/documentation/remote-access/ssh/
-touch "/boot/ssh"
+sudo touch /boot/ssh
 
 working "Setting hostname"
 # We want to do this right before reboot, so we don't get a lot of unnecessary complaints about "sudo: unable to resolve host chilipie-kiosk" (https://askubuntu.com/a/59517)
@@ -68,8 +81,8 @@ sudo apt-get update && sudo apt-get install -y vim matchbox-window-manager unclu
 # We install mailutils just so that you can check "mail" for cronjob output
 
 working "Setting home directory default content"
-rm -rfv /home/pi/*
-cp -r ./home/* /home/pi
+sudo rm -rfv /home/pi/*
+sudo cp -r ./home/* /home/pi
 
 working "Setting splash screen background"
 sudo rm /usr/share/plymouth/themes/pix/splash.png && sudo ln -s /home/pi/background.png /usr/share/plymouth/themes/pix/splash.png
@@ -77,35 +90,13 @@ sudo rm /usr/share/plymouth/themes/pix/splash.png && sudo ln -s /home/pi/backgro
 working "Installing default crontab"
 crontab /home/pi/crontab.example
 
-working "Rebooting the Pi"
-sudo reboot
-
-question "Once the Pi has rebooted into Chromium:"
-echo "* Tell Chromium we don't want to sign in"
-echo "* Configure Chromium to start \"where you left off\""
-echo "* Navigate to \"file:///home/pi/first-boot.html\""
-echo "(press enter when ready)"
-read
-
-working "Figuring out software versions"
-hostnamectl | grep 'Operating System:' | tr -s ' ' | cut -d ' ' -f 4- >temp
-VERSION_LINUX="$(cat temp)"
-hostnamectl | grep 'Kernel:' | tr -s ' ' | cut -d ' ' -f 3-4 >temp
-VERSION_KERNEL="$(cat temp)"
-chromium-browser --version | cut -d ' ' -f 1-2 >temp
-VERSION_CHROMIUM="$(cat temp)"
-rm temp
-
 working "Making boot quieter (part 1)" # https://scribles.net/customizing-boot-up-screen-on-raspberry-pi/
 echo "Updating: $BOOT_CONFIG_TXT"
-sed -i "" "s/#disable_overscan=1/disable_overscan=1/g" "$BOOT_CONFIG_TXT"
-echo -e "\ndisable_splash=1" >>"$BOOT_CONFIG_TXT"
+sudo sed -i "s/#disable_overscan=1/disable_overscan=1/g" "$BOOT_CONFIG_TXT"
+echo -e "\ndisable_splash=1" | sudo tee --append "$BOOT_CONFIG_TXT"
 
 working "Making boot quieter (part 2)" # https://scribles.net/customizing-boot-up-screen-on-raspberry-pi/
 echo "You may want to revert these changes if you ever need to debug the startup process"
 echo "Updating: $BOOT_CMDLINE_TXT"
-cat "$BOOT_CMDLINE_TXT" |
-  sed 's/console=tty1/console=tty3/' |
-  sed 's/$/ splash plymouth.ignore-serial-consoles logo.nologo vt.global_cursor_default=0/' \
-    >temp
-mv temp "$BOOT_CMDLINE_TXT"
+sudo sed -i 's/console=tty1/console=tty3/' "$BOOT_CONFIG_TXT"
+sudo sed -i 's/$/ splash plymouth.ignore-serial-consoles logo.nologo vt.global_cursor_default=0/' "$BOOT_CONFIG_TXT"
