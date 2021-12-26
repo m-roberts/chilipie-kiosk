@@ -37,7 +37,7 @@ jobs:
         run: |
           echo "IMAGE_NAME=${{ env.RASPIOS_BUILD_DATE }}-raspios-${{ env.DISTRO_NAME }}-${{ matrix.build_type_name }}" >> $GITHUB_ENV
 
-      - name: Install ansible and playbook dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y qemu-user-static unzip
 
@@ -58,20 +58,14 @@ jobs:
           unzip ${{ env.IMAGE_NAME }}.zip
           rm ${{ env.IMAGE_NAME }}.zip
 
-      - name: Prepare partitions
-        run: |
-          set -x
-          sudo losetup -f
-          sudo partx --add --verbose ./${{ env.IMAGE_NAME }}.img
-          sudo blkid -l -o export -t LABEL='rootfs'
-          sudo blkid -l -o export -t LABEL='boot'
-          set +x
-
       - name: Mount
         run: |
+          sudo losetup -f
+          sudo partx --add --verbose ./${{ env.IMAGE_NAME }}.img
+
           sudo mkdir -p /mnt/raspi-os
-          sudo mount UUID=$(blkid -l -o export -t LABEL='rootfs' | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os
-          sudo mount UUID=$(blkid -l -o export -t LABEL='boot'   | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os/boot
+          sudo mount UUID=$(sudo blkid -l -o export -t LABEL='rootfs' | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os
+          sudo mount UUID=$(sudo blkid -l -o export -t LABEL='boot'   | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os/boot
 
       - name: Prepare
         run: |
