@@ -10,7 +10,7 @@ on:
     - cron:  '0 0 * * *'
 
 env:
-  IMAGE_NAME: "2021-10-30-raspios-bullseye-armhf"
+  IMAGE_NAME: "2021-10-30-raspios-bullseye-armhf-lite"
 
 jobs:
   build:
@@ -35,7 +35,8 @@ jobs:
       - name: Download and extract Raspberry Pi OS
         if: steps.cache-rpi-os.outputs.cache-hit != 'true'
         run: |
-          wget https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip
+          # wget https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip
+          wget https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip
           unzip "${{ env.IMAGE_NAME }}.zip"
           rm "${{ env.IMAGE_NAME }}.zip"
 
