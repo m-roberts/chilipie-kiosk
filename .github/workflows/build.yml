@@ -95,7 +95,7 @@ jobs:
       - name: Clean up
         run: |
           sudo rm -rf /mnt/raspi-os/tmp/chilipie-kiosk-build
-          zip ./${{ env.IMAGE_NAME }}.{img,zip}
+          zip ./${{ env.IMAGE_NAME }}.{zip,img}
 
       - name: Upload zip
         uses: actions/upload-artifact@v2
