@@ -47,7 +47,7 @@ jobs:
           sudo partx --add --verbose "./${{ env.IMAGE_NAME }}.img"
 
           # Add 1GB to image
-          sudo dd if=/dev/zero bs=1M count=512 >> "./${{ env.IMAGE_NAME }}.img"
+          sudo dd if=/dev/zero bs=1M count=1024 >> "./${{ env.IMAGE_NAME }}.img"
 
           set -x
 
