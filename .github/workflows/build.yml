@@ -56,7 +56,7 @@ jobs:
 
           # mount -o loop ${lo_device}p2 /loopfs
 
-          ls -l "${lo_device}*"
+          ls -lR /dev
           sudo resize2fs "${lo_device}p2"
 
           sudo mkdir -p /mnt/raspi-os
