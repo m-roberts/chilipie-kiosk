@@ -10,20 +10,11 @@ on:
     - cron:  '0 0 * * *'
 
 env:
-  DISTRO_NAME: "bullseye"
-  REPO_NAME: "experimental"
-  RASPIOS_BUILD_DATE: "2021-10-30"
-  RASPIOS_RELEASE_DATE: "2021-11-08"
+  IMAGE_NAME: "2021-10-30-raspios-bullseye-armhf"
 
 jobs:
   build:
     runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - build_type_name: "armhf"
-
     steps:
       - name: GitHub Environment Variables Action
         uses: FranzDiebold/github-env-vars-action@v1.2.1
@@ -33,10 +24,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get RPi OS image name
-        run: |
-          echo "IMAGE_NAME=${{ env.RASPIOS_BUILD_DATE }}-raspios-${{ env.DISTRO_NAME }}-${{ matrix.build_type_name }}" >> $GITHUB_ENV
-
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y qemu-user-static unzip
@@ -45,14 +32,14 @@ jobs:
         id: cache-rpi-os
         uses: actions/cache@v2
         with:
-          path: ./${{ env.IMAGE_NAME }}.img
+          path: "./${{ env.IMAGE_NAME }}.img"
           key: ${{ env.IMAGE_NAME }}
 
       - name: Download and extract Raspberry Pi OS
         if: steps.cache-rpi-os.outputs.cache-hit != 'true'
         run: |
           build_type_dir="raspios_$(echo ${{ matrix.build_type_name }} | python3 -c "import sys; print('_'.join(reversed(sys.stdin.read().strip().split('-'))))")"
-          url="https://downloads.raspberrypi.org/${build_type_dir}/images/${build_type_dir}-${{ env.RASPIOS_RELEASE_DATE }}/${{ env.IMAGE_NAME }}.zip"
+          url="https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip"
 
           wget $url
           unzip ${{ env.IMAGE_NAME }}.zip
@@ -60,8 +47,13 @@ jobs:
 
       - name: Mount
         run: |
-          sudo losetup -f
-          sudo partx --add --verbose ./${{ env.IMAGE_NAME }}.img
+          lo_device="$(sudo losetup -f)"
+
+          # Add 1GB to image
+          dd if=/dev/zero bs=1M count=1024 >> "./${{ env.IMAGE_NAME }}.img"
+          resize2fs "${lo_device}"
+
+          sudo partx --add --verbose "./${{ env.IMAGE_NAME }}.img"
 
           sudo mkdir -p /mnt/raspi-os
           sudo mount UUID=$(sudo blkid -l -o export -t LABEL='rootfs' | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os
