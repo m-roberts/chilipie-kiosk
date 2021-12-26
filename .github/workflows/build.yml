@@ -46,11 +46,8 @@ jobs:
 
           sudo partx --add --verbose "./${{ env.IMAGE_NAME }}.img"
 
-          # Add 1GB to image
-          sudo dd if=/dev/zero bs=1M count=1024 >> "./${{ env.IMAGE_NAME }}.img"
-
-          set -x
-
+          # Increase space
+          sudo dd if=/dev/zero bs=1M count=2048 >> "./${{ env.IMAGE_NAME }}.img"
           sudo resize2fs "${lo_device}p2"
 
           sudo mkdir -p /mnt/raspi-os
