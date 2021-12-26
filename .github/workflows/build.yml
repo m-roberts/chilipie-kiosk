@@ -10,7 +10,8 @@ on:
     - cron:  '0 0 * * *'
 
 env:
-  IMAGE_NAME: "2021-10-30-raspios-bullseye-armhf-lite"
+  IMAGE_NAME: "2021-10-30-raspios-bullseye-armhf"
+  # IMAGE_NAME: "2021-10-30-raspios-bullseye-armhf-lite"
 
 jobs:
   build:
@@ -35,8 +36,8 @@ jobs:
       - name: Download and extract Raspberry Pi OS
         if: steps.cache-rpi-os.outputs.cache-hit != 'true'
         run: |
-          # wget https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip
-          wget https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip
+          wget https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip
+          # wget https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip
           unzip "${{ env.IMAGE_NAME }}.zip"
           rm "${{ env.IMAGE_NAME }}.zip"
 
@@ -46,9 +47,9 @@ jobs:
 
           sudo partx --add --verbose "./${{ env.IMAGE_NAME }}.img"
 
-          # Increase space
-          sudo dd if=/dev/zero bs=1M count=2048 >> "./${{ env.IMAGE_NAME }}.img"
-          sudo resize2fs "${lo_device}p2"
+          # # Increase space
+          # sudo dd if=/dev/zero bs=1M count=2048 >> "./${{ env.IMAGE_NAME }}.img"
+          # sudo resize2fs "${lo_device}p2"
 
           sudo mkdir -p /mnt/raspi-os
           sudo mount UUID=$(sudo blkid -l -o export -t LABEL='rootfs' | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os
