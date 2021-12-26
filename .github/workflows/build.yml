@@ -22,8 +22,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # armhf-lite
-          # armhf
           - build_type_name: "armhf"
 
     steps:
@@ -43,24 +41,31 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y ansible qemu-user-static unzip zerofree
 
-      - name: Build
+      - name: Cache unzipped Raspberry Pi OS
+        id: cache-rpi-os
+        uses: actions/cache@v2
+        with:
+          path: ./${{ env.IMAGE_NAME }}.img
+          key: ${{ env.IMAGE_NAME }}
+
+      - name: Download and extract Raspberry Pi OS
+        if: steps.cache-rpi-os.outputs.cache-hit != 'true'
         run: |
           build_type_dir="raspios_$(echo ${{ matrix.build_type_name }} | python3 -c "import sys; print('_'.join(reversed(sys.stdin.read().strip().split('-'))))")"
           url="https://downloads.raspberrypi.org/${build_type_dir}/images/${build_type_dir}-${{ env.RASPIOS_RELEASE_DATE }}/${{ env.IMAGE_NAME }}.zip"
 
           wget $url
           unzip ${{ env.IMAGE_NAME }}.zip
-          losetup -f && partx --add --verbose ./${{ env.IMAGE_NAME }}.img
+          rm ${{ env.IMAGE_NAME }}.zip
 
-          boot_blk_info=$(blkid -l -o export -t LABEL='boot')
-          boot_uuid=$(echo "${boot_blk_info}" | grep '^UUID' | cut -d'=' -f2)
-
-          rootfs_blk_info=$(blkid -l -o export -t LABEL='rootfs')
-          rootfs_uuid=$(echo "${rootfs_blk_info}" | grep '^UUID' | cut -d'=' -f2)
+      - name: Prepare
+        run: |
+          sudo losetup -f
+          sudo partx --add --verbose ./${{ env.IMAGE_NAME }}.img
 
           sudo mkdir -p /mnt/raspi-os
-          sudo mount UUID=${rootfs_uuid} /mnt/raspi-os
-          sudo mount UUID=${boot_uuid} /mnt/raspi-os/boot
+          sudo mount UUID=$(blkid -l -o export -t LABEL='rootfs' | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os
+          sudo mount UUID=$(blkid -l -o export -t LABEL='boot'   | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os/boot
 
           sudo cp /usr/bin/qemu-arm-static /mnt/raspi-os/usr/bin/qemu-arm-static
 
@@ -72,9 +77,12 @@ jobs:
           mkdir -p /mnt/raspi-os/tmp/chilipie-kiosk-build
           cp -r . /mnt/raspi-os/tmp/chilipie-kiosk-build
 
-          chroot /mnt/raspi-os/ qemu-arm-static /mnt/raspi-os/tmp/chilipie-kiosk-build/setup.sh
+      - name: Build
+        run: sudo chroot /mnt/raspi-os/ qemu-arm-static /mnt/raspi-os/tmp/chilipie-kiosk-build/setup.sh
 
-          rm -rf /mnt/raspi-os/tmp/chilipie-kiosk-build
+      - name: Clean up
+        run: |
+          sudo rm -rf /mnt/raspi-os/tmp/chilipie-kiosk-build
 
           sudo umount /mnt/raspi-os/boot
           sudo umount /mnt/raspi-os/
