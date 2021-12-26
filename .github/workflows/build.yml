@@ -4,11 +4,6 @@ on:
   push:
     branches:
       - "**"
-    paths:
-      - "playbooks/**"
-      - "inventory"
-      - "ansible.cfg"
-      - ".github/workflows/bullseye-experimental.yml"
   workflow_dispatch:
   schedule:
     # Run daily at midnight
