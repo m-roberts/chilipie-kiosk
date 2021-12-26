@@ -50,8 +50,8 @@ jobs:
           lo_device="$(sudo losetup -f)"
 
           # Add 1GB to image
-          dd if=/dev/zero bs=1M count=1024 >> "./${{ env.IMAGE_NAME }}.img"
-          resize2fs "${lo_device}"
+          sudo dd if=/dev/zero bs=1M count=1024 >> "./${{ env.IMAGE_NAME }}.img"
+          sudo resize2fs "${lo_device}"
 
           sudo partx --add --verbose "./${{ env.IMAGE_NAME }}.img"
 
