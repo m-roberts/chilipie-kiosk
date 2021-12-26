@@ -39,7 +39,7 @@ jobs:
 
       - name: Install ansible and playbook dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y ansible qemu-user-static unzip zerofree
+          sudo apt-get update && sudo apt-get install -y qemu-user-static unzip
 
       - name: Cache unzipped Raspberry Pi OS
         id: cache-rpi-os
