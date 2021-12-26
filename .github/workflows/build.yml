@@ -53,7 +53,7 @@ jobs:
           sudo partx --add --verbose "./${{ env.IMAGE_NAME }}.img"
 
           # Add 1GB to image
-          sudo dd if=/dev/zero bs=1M count=1024 >> "./${{ env.IMAGE_NAME }}.img"
+          sudo dd if=/dev/zero bs=1M count=512 >> "./${{ env.IMAGE_NAME }}.img"
 
           set -x
 
@@ -64,10 +64,10 @@ jobs:
           sudo mount UUID=$(sudo blkid -l -o export -t LABEL='boot'   | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os/boot
 
           # Mount virtual filesystems
-          mount -t proc /proc /mnt/raspi-os/proc
-          mount -t sysfs /sys /mnt/raspi-os/sys
-          mount -o bind /dev /mnt/raspi-os/dev
-          mount -o bind /dev/pts /mnt/raspi-os/dev/pts
+          sudo mount -t proc /proc /mnt/raspi-os/proc
+          sudo mount -t sysfs /sys /mnt/raspi-os/sys
+          sudo mount -o bind /dev /mnt/raspi-os/dev
+          sudo mount -o bind /dev/pts /mnt/raspi-os/dev/pts
 
       - name: Prepare
         run: |
@@ -91,16 +91,23 @@ jobs:
             ./setup.sh
           EOF
 
-      # - name: Clean up
-      #   run: |
-      #     sudo rm -rf /mnt/raspi-os/tmp/chilipie-kiosk-build
+      - name: Clean up
+        run: |
+          sudo rm -rf /mnt/raspi-os/tmp/chilipie-kiosk-build
 
-      #     sudo umount /mnt/raspi-os/proc
-      #     sudo umount /mnt/raspi-os/sys
-      #     sudo umount /mnt/raspi-os/dev
-      #     sudo umount /mnt/raspi-os/dev/pts
-      #     sudo umount /mnt/raspi-os/boot
-      #     sudo umount /mnt/raspi-os/
+          sudo umount /mnt/raspi-os/proc
+          sudo umount /mnt/raspi-os/sys
+          sudo umount /mnt/raspi-os/dev
+          sudo umount /mnt/raspi-os/dev/pts
+          sudo umount /mnt/raspi-os/boot
+          sudo umount /mnt/raspi-os/
 
-      #     # zip
-      #     # upload
+          # Shrink image
+
+          zip ./${{ env.IMAGE_NAME }}.{img,zip}
+
+      - name: Upload zip
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          path: ./${{ env.IMAGE_NAME }}.zip
