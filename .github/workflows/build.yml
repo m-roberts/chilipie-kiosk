@@ -1,4 +1,4 @@
-name: pi-topOS Experimental Bullseye Build
+name: Build
 
 on:
   push:
@@ -16,13 +16,9 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-      - name: GitHub Environment Variables Action
-        uses: FranzDiebold/github-env-vars-action@v1.2.1
-
       - name: Checkout code
         uses: actions/checkout@v2.2.0
         with:
-          fetch-depth: 0
           path: chilipie
 
       - name: Install dependencies
@@ -39,14 +35,11 @@ jobs:
       - name: Download and extract Raspberry Pi OS
         if: steps.cache-rpi-os.outputs.cache-hit != 'true'
         run: |
-          build_type_dir="raspios_$(echo ${{ matrix.build_type_name }} | python3 -c "import sys; print('_'.join(reversed(sys.stdin.read().strip().split('-'))))")"
-          url="https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip"
+          wget https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip
+          unzip "${{ env.IMAGE_NAME }}.zip"
+          rm "${{ env.IMAGE_NAME }}.zip"
 
-          wget $url
-          unzip ${{ env.IMAGE_NAME }}.zip
-          rm ${{ env.IMAGE_NAME }}.zip
-
-      - name: Mount
+      - name: Mount RPi OS
         run: |
           lo_device="$(sudo losetup -f)"
 
@@ -70,7 +63,7 @@ jobs:
           sudo mount -t proc /proc /mnt/raspi-os/proc
           sudo mount -t sysfs /sys /mnt/raspi-os/sys
 
-      - name: Prepare
+      - name: Prepare mounted FS
         run: |
           sudo cp /usr/bin/qemu-arm-static /mnt/raspi-os/usr/bin/qemu-arm-static
 
@@ -92,13 +85,13 @@ jobs:
             ./setup.sh
           EOF
 
-      - name: Clean up
+      - name: Zip
         run: |
           sudo rm -rf /mnt/raspi-os/tmp/chilipie-kiosk-build
-          zip ./${{ env.IMAGE_NAME }}.{zip,img}
+          zip ./chilipie-kiosk.zip ./${{ env.IMAGE_NAME }}.img
 
-      - name: Upload zip
+      - name: Upload
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
-          path: ./${{ env.IMAGE_NAME }}.zip
+          path: ./chilipie-kiosk.zip
