@@ -73,8 +73,6 @@ jobs:
           tar xvf x86_64_qemu-arm-static.tar.gz
           rm x86_64_qemu-arm-static.tar.gz
 
-          sudo cp qemu-arm-static /mnt/raspi-os/usr/bin/
-
           sudo mkdir -p /mnt/raspi-os/tmp/chilipie-kiosk-build
           sudo cp -r ./chilipie/* /mnt/raspi-os/tmp/chilipie-kiosk-build
 
