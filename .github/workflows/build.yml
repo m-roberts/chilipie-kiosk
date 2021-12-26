@@ -63,6 +63,11 @@ jobs:
           sudo losetup -f
           sudo partx --add --verbose ./${{ env.IMAGE_NAME }}.img
 
+          set -x
+          blkid -l -o export -t LABEL='rootfs'
+          blkid -l -o export -t LABEL='boot'
+          set +x
+
           sudo mkdir -p /mnt/raspi-os
           sudo mount UUID=$(blkid -l -o export -t LABEL='rootfs' | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os
           sudo mount UUID=$(blkid -l -o export -t LABEL='boot'   | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os/boot
