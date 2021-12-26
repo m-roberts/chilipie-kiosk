@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@v2.2.0
         with:
           fetch-depth: 0
+          path: chilipie
 
       - name: Install dependencies
         run: |
@@ -75,7 +76,7 @@ jobs:
           sudo cp qemu-arm-static /mnt/raspi-os/usr/bin/
 
           sudo mkdir -p /mnt/raspi-os/tmp/chilipie-kiosk-build
-          sudo cp -r . /mnt/raspi-os/tmp/chilipie-kiosk-build
+          sudo cp -r ./chilipie/* /mnt/raspi-os/tmp/chilipie-kiosk-build
 
       # - name: Build
       #   run: sudo chroot /mnt/raspi-os/ qemu-arm-static /mnt/raspi-os/tmp/chilipie-kiosk-build/setup.sh
