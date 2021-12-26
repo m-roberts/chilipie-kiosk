@@ -63,8 +63,8 @@ jobs:
           set -x
           sudo losetup -f
           sudo partx --add --verbose ./${{ env.IMAGE_NAME }}.img
-          blkid -l -o export -t LABEL='rootfs'
-          blkid -l -o export -t LABEL='boot'
+          sudo blkid -l -o export -t LABEL='rootfs'
+          sudo blkid -l -o export -t LABEL='boot'
           set +x
 
       - name: Mount
