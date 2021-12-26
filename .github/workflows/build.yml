@@ -81,7 +81,8 @@ jobs:
           cd /mnt/raspi-os/
           sudo chroot . <<EOF
             sudo su pi
-            /tmp/chilipie-kiosk-build/setup.sh
+            cd /tmp/chilipie-kiosk-build
+            ./setup.sh
           EOF
 
       # - name: Clean up
