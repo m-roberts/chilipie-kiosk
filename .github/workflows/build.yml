@@ -73,7 +73,12 @@ jobs:
           sudo cp -r ./chilipie/* /mnt/raspi-os/tmp/chilipie-kiosk-build
 
       - name: Build
-        run: sudo chroot /mnt/raspi-os/ qemu-arm-static /tmp/chilipie-kiosk-build/setup.sh
+        run: sudo chroot /mnt/raspi-os/ <<EOF
+          ls -l
+          pwd
+          sudo su pi
+          /tmp/chilipie-kiosk-build/setup.sh
+        EOF
 
       # - name: Clean up
       #   run: |
