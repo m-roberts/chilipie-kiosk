@@ -56,11 +56,7 @@ jobs:
 
           set -x
 
-          # sudo resize2fs "${lo_device}p2"
-
-          sudo mkdir -p /loopfs
-          sudo mount -o loop "${lo_device}p2" /loopfs
-          sudo resize2fs /loopfs
+          sudo resize2fs "${lo_device}p2"
 
           sudo mkdir -p /mnt/raspi-os
           sudo mount UUID=$(sudo blkid -l -o export -t LABEL='rootfs' | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os
