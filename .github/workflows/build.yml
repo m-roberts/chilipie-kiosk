@@ -95,18 +95,6 @@ jobs:
       - name: Clean up
         run: |
           sudo rm -rf /mnt/raspi-os/tmp/chilipie-kiosk-build
-
-          sudo umount /mnt/raspi-os/dev/pts
-          sudo umount /mnt/raspi-os/dev
-
-          sudo umount /mnt/raspi-os/proc
-          sudo umount /mnt/raspi-os/sys
-
-          sudo umount /mnt/raspi-os/boot
-          sudo umount /mnt/raspi-os/
-
-          # Shrink image
-
           zip ./${{ env.IMAGE_NAME }}.{img,zip}
 
       - name: Upload zip
