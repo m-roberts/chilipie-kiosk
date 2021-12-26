@@ -63,6 +63,12 @@ jobs:
           sudo mount UUID=$(sudo blkid -l -o export -t LABEL='rootfs' | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os
           sudo mount UUID=$(sudo blkid -l -o export -t LABEL='boot'   | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os/boot
 
+          # Mount virtual filesystems
+          mount -t proc /proc /mnt/raspi-os/proc
+          mount -t sysfs /sys /mnt/raspi-os/sys
+          mount -o bind /dev /mnt/raspi-os/dev
+          mount -o bind /dev/pts /mnt/raspi-os/dev/pts
+
       - name: Prepare
         run: |
           sudo cp /usr/bin/qemu-arm-static /mnt/raspi-os/usr/bin/qemu-arm-static
@@ -89,9 +95,12 @@ jobs:
       #   run: |
       #     sudo rm -rf /mnt/raspi-os/tmp/chilipie-kiosk-build
 
+      #     sudo umount /mnt/raspi-os/proc
+      #     sudo umount /mnt/raspi-os/sys
+      #     sudo umount /mnt/raspi-os/dev
+      #     sudo umount /mnt/raspi-os/dev/pts
       #     sudo umount /mnt/raspi-os/boot
       #     sudo umount /mnt/raspi-os/
 
-      #     # unmount
       #     # zip
       #     # upload

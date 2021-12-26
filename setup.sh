@@ -66,6 +66,5 @@ sudo sed -i 's/console=tty1/console=tty3/' "$BOOT_CONFIG_TXT"
 sudo sed -i 's/$/ splash plymouth.ignore-serial-consoles logo.nologo vt.global_cursor_default=0/' "$BOOT_CONFIG_TXT"
 
 working "Setting hostname"
-# We want to do this right before reboot, so we don't get a lot of unnecessary complaints about "sudo: unable to resolve host chilipie-kiosk" (https://askubuntu.com/a/59517)
-sudo hostnamectl set-hostname chilipie-kiosk
+sudo sed -i 's/raspberrypi/chilipie-kiosk/g' /etc/hostname
 sudo sed -i 's/raspberrypi/chilipie-kiosk/g' /etc/hosts
