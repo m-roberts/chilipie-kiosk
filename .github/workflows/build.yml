@@ -74,9 +74,6 @@ jobs:
 
       - name: Build
         run: |
-          # Unknown host QEMU_IFLA type: 54
-          # sudo: unable to resolve host fv-az135-192: Name or service not known
-
           cd /mnt/raspi-os/
           sudo chroot . <<EOF
             sudo su pi
@@ -84,13 +81,14 @@ jobs:
             ./setup.sh
           EOF
 
-      - name: Zip
+      - name: Clean up
         run: |
           sudo rm -rf /mnt/raspi-os/tmp/chilipie-kiosk-build
-          zip ./chilipie-kiosk.zip ./${{ env.IMAGE_NAME }}.img
+          mv "./${{ env.IMAGE_NAME }}.img" "./chilipie-kiosk-${{ env.IMAGE_NAME }}.img"
 
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
-          path: ./chilipie-kiosk.zip
+          name: "chilipie-kiosk-${{ env.IMAGE_NAME }}"
+          path: "./chilipie-kiosk-${{ env.IMAGE_NAME }}.img"
