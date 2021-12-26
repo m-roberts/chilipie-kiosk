@@ -24,10 +24,7 @@ echo "Updating: $BOOT_CMDLINE_TXT"
 sudo sed -i "s#init=/usr/lib/raspi-config/init_resize.sh##" "$BOOT_CMDLINE_TXT"
 
 working "Enabling auto-login to CLI"
-# From: https://github.com/RPi-Distro/raspi-config/blob/985548d7ca00cab11eccbb734b63750761c1f08a/raspi-config#L955
-SUDO_USER=pi
-sudo systemctl set-default multi-user.target
-sudo sed /etc/systemd/system/autologin@.service -i -e \"s#^ExecStart=-/sbin/agetty --autologin [^[:space:]]*#ExecStart=-/sbin/agetty --autologin $SUDO_USER #\"
+sudo raspi-config nonint do_boot_behaviour B2
 # Set auto-login for TTY's 1-3
 sudo ln -fs /etc/systemd/system/autologin@.service /etc/systemd/system/getty.target.wants/getty@tty1.service
 sudo ln -fs /etc/systemd/system/autologin@.service /etc/systemd/system/getty.target.wants/getty@tty2.service
