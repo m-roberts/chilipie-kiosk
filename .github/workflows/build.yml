@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y npm qemu-user-static unzip
+          sudo apt-get update && sudo apt-get install -y qemu-user-static unzip
 
       - name: Cache unzipped Raspberry Pi OS
         id: cache-rpi-os
@@ -70,20 +70,7 @@ jobs:
           sudo mv /mnt/raspi-os/etc/ld.so.preload /mnt/raspi-os/etc/ld.so.preload.bak
 
           sudo mkdir -p /mnt/raspi-os/tmp/chilipie-kiosk-build
-
           cd ./chilipie
-
-          npm install markdown-styles@3.1.10 html-inline@1.2.0
-
-          mkdir md-input
-          cp ./docs/first-boot.md md-input
-
-          mkdir md-output
-          ./node_modules/.bin/generate-md --layout github --input md-input/ --output md-output/
-          ./node_modules/.bin/html-inline -i md-output/first-boot.html > ./home/first-boot.html
-
-          rm -rf md-input md-output
-
           sudo cp -r ./* /mnt/raspi-os/tmp/chilipie-kiosk-build
 
       - name: Build

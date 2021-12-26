@@ -15,30 +15,6 @@ function question {
 
 echo "User: $(whoami)"
 
-if [ ! -f "./home/first-boot.html" ]; then
-  working "Generating first-boot.html"
-
-  if [ ! -d "node_modules" ]; then
-    sudo apt update && sudo apt install -y npm
-    npm install markdown-styles@3.1.10 html-inline@1.2.0
-  fi
-
-  if [ ! -d "md-input" ]; then
-    mkdir md-input
-    cp ./docs/first-boot.md md-input
-  fi
-
-  mkdir md-output
-
-  cp ./docs/first-boot.md md-output
-
-  ./node_modules/.bin/generate-md --layout github --input md-input/ --output md-output/
-  ./node_modules/.bin/html-inline -i md-output/first-boot.html >./home/first-boot.html
-fi
-
-[ -d "node_modules" ] && rm -rf "node_modules"
-[ -d "md-input" ] && rm -rf "md-input"
-
 working "Backing up original boot files"
 sudo cp -v "$BOOT_CMDLINE_TXT" "$BOOT_CMDLINE_TXT.backup"
 sudo cp -v "$BOOT_CONFIG_TXT" "$BOOT_CONFIG_TXT.backup"
@@ -46,15 +22,6 @@ sudo cp -v "$BOOT_CONFIG_TXT" "$BOOT_CONFIG_TXT.backup"
 working "Disabling automatic root filesystem expansion"
 echo "Updating: $BOOT_CMDLINE_TXT"
 sudo sed -i "s#init=/usr/lib/raspi-config/init_resize.sh##" "$BOOT_CMDLINE_TXT"
-
-working "Enabling SSH for first boot"
-# https://www.raspberrypi.org/documentation/remote-access/ssh/
-sudo touch /boot/ssh
-
-working "Setting hostname"
-# We want to do this right before reboot, so we don't get a lot of unnecessary complaints about "sudo: unable to resolve host chilipie-kiosk" (https://askubuntu.com/a/59517)
-sudo hostnamectl set-hostname chilipie-kiosk
-sudo sed -i 's/raspberrypi/chilipie-kiosk/g' /etc/hosts
 
 working "Enabling auto-login to CLI"
 # From: https://github.com/RPi-Distro/raspi-config/blob/985548d7ca00cab11eccbb734b63750761c1f08a/raspi-config#L955
@@ -100,3 +67,8 @@ echo "You may want to revert these changes if you ever need to debug the startup
 echo "Updating: $BOOT_CMDLINE_TXT"
 sudo sed -i 's/console=tty1/console=tty3/' "$BOOT_CONFIG_TXT"
 sudo sed -i 's/$/ splash plymouth.ignore-serial-consoles logo.nologo vt.global_cursor_default=0/' "$BOOT_CONFIG_TXT"
+
+working "Setting hostname"
+# We want to do this right before reboot, so we don't get a lot of unnecessary complaints about "sudo: unable to resolve host chilipie-kiosk" (https://askubuntu.com/a/59517)
+sudo hostnamectl set-hostname chilipie-kiosk
+sudo sed -i 's/raspberrypi/chilipie-kiosk/g' /etc/hosts
