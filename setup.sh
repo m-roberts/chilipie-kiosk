@@ -19,10 +19,6 @@ working "Backing up original boot files"
 sudo cp -v "$BOOT_CMDLINE_TXT" "$BOOT_CMDLINE_TXT.backup"
 sudo cp -v "$BOOT_CONFIG_TXT" "$BOOT_CONFIG_TXT.backup"
 
-working "Disabling automatic root filesystem expansion"
-echo "Updating: $BOOT_CMDLINE_TXT"
-sudo sed -i "s#init=/usr/lib/raspi-config/init_resize.sh##" "$BOOT_CMDLINE_TXT"
-
 working "Enabling auto-login to CLI"
 sudo raspi-config nonint do_boot_behaviour B2
 # Set auto-login for TTY's 1-3
