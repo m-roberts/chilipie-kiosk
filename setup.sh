@@ -68,8 +68,8 @@ echo -e "\ndisable_splash=1" | sudo tee --append "$BOOT_CONFIG_TXT"
 working "Making boot quieter (part 2)" # https://scribles.net/customizing-boot-up-screen-on-raspberry-pi/
 echo "You may want to revert these changes if you ever need to debug the startup process"
 echo "Updating: $BOOT_CMDLINE_TXT"
-sudo sed -i 's/console=tty1/console=tty3/' "$BOOT_CONFIG_TXT"
-sudo sed -i 's/$/ splash plymouth.ignore-serial-consoles logo.nologo vt.global_cursor_default=0/' "$BOOT_CONFIG_TXT"
+sudo sed -i 's/console=tty1/console=tty3/' "$BOOT_CMDLINE_TXT"
+sudo sed -i 's/$/ splash plymouth.ignore-serial-consoles logo.nologo vt.global_cursor_default=0/' "$BOOT_CMDLINE_TXT"
 
 working "Setting hostname"
 sudo sed -i 's/raspberrypi/chilipie-kiosk/g' /etc/hostname
