@@ -52,7 +52,7 @@ sudo apt-get update && sudo apt-get install -y --no-install-recommends \
 
 working "Setting home directory default content"
 sudo rm -rfv /home/pi/*
-sudo cp -r ./home/* /home/pi
+sudo cp -r ./home /home/pi
 
 working "Setting splash screen background"
 sudo rm /usr/share/plymouth/themes/pix/splash.png && sudo ln -s /home/pi/background.png /usr/share/plymouth/themes/pix/splash.png
@@ -72,8 +72,12 @@ sudo sed -i 's/console=tty1/console=tty3/' "$BOOT_CMDLINE_TXT"
 sudo sed -i 's/$/ splash plymouth.ignore-serial-consoles logo.nologo vt.global_cursor_default=0/' "$BOOT_CMDLINE_TXT"
 
 working "Setting hostname"
-sudo sed -i 's/raspberrypi/chilipie-kiosk/g' /etc/hostname
-sudo sed -i 's/raspberrypi/chilipie-kiosk/g' /etc/hosts
+echo "chilipie-kiosk" | sudo tee /etc/hostname
+echo "ff02::1    ip6-allnodes
+ff02::2    ip6-allrouters
+
+127.0.1.1    chilipie-kiosk" | sudo tee /etc/hosts
+# sudo sed -i 's/raspberrypi/chilipie-kiosk/g' /etc/hosts
 
 working "Cleaning up..."
 sudo apt-get autoclean
