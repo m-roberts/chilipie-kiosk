@@ -1,0 +1,94 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+  schedule:
+    # Run daily at midnight
+    - cron:  '0 0 * * *'
+
+env:
+  IMAGE_NAME: "2021-10-30-raspios-bullseye-armhf"
+  # IMAGE_NAME: "2021-10-30-raspios-bullseye-armhf-lite"
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.2.0
+        with:
+          path: chilipie
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y binfmt-support qemu-user-static unzip
+
+      - name: Cache unzipped Raspberry Pi OS
+        id: cache-rpi-os
+        uses: actions/cache@v2
+        with:
+          path: "./${{ env.IMAGE_NAME }}.img"
+          key: ${{ env.IMAGE_NAME }}
+
+      - name: Download and extract Raspberry Pi OS
+        if: steps.cache-rpi-os.outputs.cache-hit != 'true'
+        run: |
+          wget https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip
+          # wget https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-11-08/${{ env.IMAGE_NAME }}.zip
+          unzip "${{ env.IMAGE_NAME }}.zip"
+          rm "${{ env.IMAGE_NAME }}.zip"
+
+      - name: Mount RPi OS
+        run: |
+          lo_device="$(sudo losetup -f)"
+
+          sudo partx --add --verbose "./${{ env.IMAGE_NAME }}.img"
+
+          # # Increase space
+          # sudo dd if=/dev/zero bs=1M count=2048 >> "./${{ env.IMAGE_NAME }}.img"
+          # sudo resize2fs "${lo_device}p2"
+
+          sudo mkdir -p /mnt/raspi-os
+          sudo mount UUID=$(sudo blkid -l -o export -t LABEL='rootfs' | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os
+          sudo mount UUID=$(sudo blkid -l -o export -t LABEL='boot'   | grep '^UUID' | cut -d'=' -f2) /mnt/raspi-os/boot
+
+          # Mount virtual filesystems
+          sudo mount -o bind /dev /mnt/raspi-os/dev
+          sudo mount -o bind /dev/pts /mnt/raspi-os/dev/pts
+
+          sudo mount -t proc /proc /mnt/raspi-os/proc
+          sudo mount -t sysfs /sys /mnt/raspi-os/sys
+
+      - name: Prepare mounted FS
+        run: |
+          sudo cp /usr/bin/qemu-arm-static /mnt/raspi-os/usr/bin/qemu-arm-static
+
+          sudo mv /mnt/raspi-os/etc/ld.so.preload /mnt/raspi-os/etc/ld.so.preload.bak
+
+          sudo mkdir -p /mnt/raspi-os/tmp/chilipie-kiosk-build
+          cd ./chilipie
+          sudo cp -r ./* /mnt/raspi-os/tmp/chilipie-kiosk-build
+
+      - name: Build
+        run: |
+          cd /mnt/raspi-os/
+          sudo chroot . <<EOF
+            sudo su pi
+            cd /tmp/chilipie-kiosk-build
+            ./setup.sh
+          EOF
+
+      - name: Clean up
+        run: |
+          sudo rm -rf /mnt/raspi-os/tmp/chilipie-kiosk-build
+          mv "./${{ env.IMAGE_NAME }}.img" "./chilipie-kiosk-${{ env.IMAGE_NAME }}.img"
+
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: "chilipie-kiosk-${{ env.IMAGE_NAME }}"
+          path: "./chilipie-kiosk-${{ env.IMAGE_NAME }}.img"
