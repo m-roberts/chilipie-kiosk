@@ -53,6 +53,7 @@ sudo apt-get update && sudo apt-get install -y --no-install-recommends \
 working "Setting home directory default content"
 sudo rm -rfv /home/pi/*
 sudo cp -r ./home /home/pi
+[[ -d ./boot ]] && sudo cp -r ./boot /boot
 
 working "Setting splash screen background"
 sudo rm /usr/share/plymouth/themes/pix/splash.png && sudo ln -s /home/pi/background.png /usr/share/plymouth/themes/pix/splash.png
